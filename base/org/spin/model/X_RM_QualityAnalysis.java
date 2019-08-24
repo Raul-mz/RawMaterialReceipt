@@ -31,7 +31,7 @@ public class X_RM_QualityAnalysis extends PO implements I_RM_QualityAnalysis, I_
 	/**
 	 *
 	 */
-	private static final long serialVersionUID = 20190709L;
+	private static final long serialVersionUID = 20190823L;
 
     /** Standard Constructor */
     public X_RM_QualityAnalysis (Properties ctx, int RM_QualityAnalysis_ID, String trxName)
@@ -569,6 +569,31 @@ public class X_RM_QualityAnalysis extends PO implements I_RM_QualityAnalysis, I_
 	public int getWM_InOutBound_ID () 
 	{
 		Integer ii = (Integer)get_Value(COLUMNNAME_WM_InOutBound_ID);
+		if (ii == null)
+			 return 0;
+		return ii.intValue();
+	}
+
+	public org.eevolution.model.I_WM_InOutBoundLine getWM_InOutBoundLine() throws RuntimeException
+    {
+		return (org.eevolution.model.I_WM_InOutBoundLine)MTable.get(getCtx(), org.eevolution.model.I_WM_InOutBoundLine.Table_Name)
+			.getPO(getWM_InOutBoundLine_ID(), get_TrxName());	}
+
+	/** Set Inbound & Outbound Order Line.
+		@param WM_InOutBoundLine_ID Inbound & Outbound Order Line	  */
+	public void setWM_InOutBoundLine_ID (int WM_InOutBoundLine_ID)
+	{
+		if (WM_InOutBoundLine_ID < 1) 
+			set_Value (COLUMNNAME_WM_InOutBoundLine_ID, null);
+		else 
+			set_Value (COLUMNNAME_WM_InOutBoundLine_ID, Integer.valueOf(WM_InOutBoundLine_ID));
+	}
+
+	/** Get Inbound & Outbound Order Line.
+		@return Inbound & Outbound Order Line	  */
+	public int getWM_InOutBoundLine_ID () 
+	{
+		Integer ii = (Integer)get_Value(COLUMNNAME_WM_InOutBoundLine_ID);
 		if (ii == null)
 			 return 0;
 		return ii.intValue();
