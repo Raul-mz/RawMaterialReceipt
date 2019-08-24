@@ -21,6 +21,7 @@ import org.compiere.model.CalloutEngine;
 import org.compiere.model.GridField;
 import org.compiere.model.GridTab;
 import org.compiere.model.MDocType;
+import org.eevolution.model.MWMInOutBoundLine;
 
 /**
  * @author Yamel Senih, ysenih@erpya.com , http://www.erpya.com
@@ -37,14 +38,35 @@ public class CalloutQualityAnalysis extends CalloutEngine {
 	 * @return
 	 * @return String
 	 */
-	public String documentType (Properties ctx, int WindowNo, GridTab mTab, GridField mField, Object value){
-		Integer m_C_DocType_ID = (Integer)value;
-		if (m_C_DocType_ID == null || m_C_DocType_ID.intValue() == 0)
+	public String documentType(Properties ctx, int WindowNo, GridTab mTab, GridField mField, Object value){
+		Integer documentTypeId = (Integer)value;
+		if (documentTypeId == null || documentTypeId.intValue() == 0)
 			return "";
 		
-		MDocType documentType = MDocType.get(ctx, m_C_DocType_ID.intValue());
+		MDocType documentType = MDocType.get(ctx, documentTypeId.intValue());
 		//	Is SO Trx
 		mTab.setValue("IsSOTrx", documentType.isSOTrx());
+		return "";
+	}
+	
+	/**
+	 * Set product from In Out Bound Order
+	 * @param ctx
+	 * @param WindowNo
+	 * @param mTab
+	 * @param mField
+	 * @param value
+	 * @return
+	 */
+	public String inOutBoundOrderLine(Properties ctx, int WindowNo, GridTab mTab, GridField mField, Object value){
+		Integer inOutBounLineId = (Integer)value;
+		if (inOutBounLineId == null || inOutBounLineId.intValue() == 0)
+			return "";
+		
+		MWMInOutBoundLine inOutBounLine = new MWMInOutBoundLine(ctx, inOutBounLineId, null);
+		if(inOutBounLine.getM_Product_ID() != 0) {
+			mTab.setValue("M_Product_ID", inOutBounLine.getM_Product_ID());
+		}
 		return "";
 	}
 }
