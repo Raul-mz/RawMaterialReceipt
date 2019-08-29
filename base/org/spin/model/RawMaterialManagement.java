@@ -22,6 +22,7 @@ import org.compiere.model.MDocType;
 import org.compiere.model.MLocator;
 import org.compiere.model.MOrder;
 import org.compiere.model.MOrderLine;
+import org.compiere.model.MProduct;
 import org.compiere.model.MWarehouse;
 import org.compiere.model.ModelValidationEngine;
 import org.compiere.model.ModelValidator;
@@ -104,7 +105,7 @@ public class RawMaterialManagement implements ModelValidator {
 							.first();
 						if(inbound != null
 								&& inbound.getWM_InOutBound_ID() != 0) {
-							MWMInOutBoundLine inboundLine = new Query(recordWeight.getCtx(), I_WM_InOutBoundLine.Table_Name, "WM_InOutBoundLine_ID = ? AND C_OrderLine_ID = ?", recordWeight.get_TrxName())
+							MWMInOutBoundLine inboundLine = new Query(recordWeight.getCtx(), I_WM_InOutBoundLine.Table_Name, "WM_InOutBound_ID = ? AND C_OrderLine_ID = ?", recordWeight.get_TrxName())
 							.setParameters(inbound.getWM_InOutBound_ID(), recordWeight.getC_OrderLine_ID())
 							.setClient_ID()
 							.first();
@@ -154,6 +155,31 @@ public class RawMaterialManagement implements ModelValidator {
 							inboundLine.setLine(10);
 							inboundLine.setDescription(Msg.parseTranslation(recordWeight.getCtx(), "@DD_RecordWeight_ID@: " + recordWeight.getDocumentNo()));
 							inboundLine.saveEx();
+						}
+					}
+				}
+			} else if(timing == TIMING_AFTER_COMPLETE) {
+				if(recordWeight.getC_Order_ID() != 0) {
+					MOrder order = new MOrder(recordWeight.getCtx(), recordWeight.getC_Order_ID(), recordWeight.get_TrxName());
+					if(!order.getDocStatus().equals(MOrder.DOCSTATUS_Completed)) {
+						throw new AdempiereException("@C_Order_ID@ @CreateShipment.OrderNotCompleted@");
+					}
+					MOrderLine orderLine = new MOrderLine(recordWeight.getCtx(), recordWeight.getC_OrderLine_ID(), recordWeight.get_TrxName());
+					//	Create Receipt
+					if(!recordWeight.isSOTrx()) {
+						MWMInOutBoundLine inboundLine = new Query(recordWeight.getCtx(), I_WM_InOutBoundLine.Table_Name, 
+								"C_OrderLine_ID = ? AND EXISTS(SELECT 1 FROM WM_InOutBound ob WHERE ob.Processed = 'N' "
+								+ "AND ob.WM_InOutBound_ID = WM_InOutBoundLine.WM_InOutBound_ID AND ob.DD_RecordWeight_ID = ?)", recordWeight.get_TrxName())
+								.setParameters(recordWeight.getC_OrderLine_ID(), recordWeight.getDD_RecordWeight_ID())
+								.setClient_ID()
+								.first();
+						//	Validate
+						if(inboundLine != null
+								&& inboundLine.getWM_InOutBoundLine_ID() != 0) {
+							MProduct product = MProduct.get(recordWeight.getCtx(), orderLine.getM_Product_ID());
+							if(product.get_ValueAsBoolean("IsBulkProduct")) {
+								inboundLine.saveEx();
+							}
 						}
 					}
 				}
