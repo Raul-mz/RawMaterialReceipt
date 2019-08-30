@@ -15,6 +15,9 @@
  ************************************************************************************/
 package org.spin.model;
 
+import java.util.List;
+import java.util.Optional;
+
 import org.adempiere.exceptions.AdempiereException;
 import org.adempiere.exceptions.DocTypeNotFoundException;
 import org.compiere.model.MClient;
@@ -66,6 +69,7 @@ public class RawMaterialManagement implements ModelValidator {
 		}
 		// Add Timing change only for invoice
 		engine.addDocValidate(MDDRecordWeight.Table_Name, this);
+		engine.addDocValidate(MWMInOutBound.Table_Name, this);
 	}
 
 	@Override
@@ -87,74 +91,19 @@ public class RawMaterialManagement implements ModelValidator {
 			MDDRecordWeight recordWeight = (MDDRecordWeight) po;
 			//	Validate and create express receipt
 			if(timing == TIMING_AFTER_PREPARE) {
-				if(recordWeight.getC_Order_ID() != 0
-						&& recordWeight.getC_OrderLine_ID() == 0) {
-					throw new AdempiereException("@FillMandatory@ @C_OrderLine_ID@");
-				}
 				if(recordWeight.getC_Order_ID() != 0) {
 					MOrder order = new MOrder(recordWeight.getCtx(), recordWeight.getC_Order_ID(), recordWeight.get_TrxName());
 					if(!order.getDocStatus().equals(MOrder.DOCSTATUS_Completed)) {
 						throw new AdempiereException("@C_Order_ID@ @CreateShipment.OrderNotCompleted@");
 					}
-					MOrderLine orderLine = new MOrderLine(recordWeight.getCtx(), recordWeight.getC_OrderLine_ID(), recordWeight.get_TrxName());
-					//	Create Receipt
 					if(!recordWeight.isSOTrx()) {
-						MWMInOutBound inbound = new Query(recordWeight.getCtx(), I_WM_InOutBound.Table_Name, "DD_RecordWeight_ID = ? AND Processed = 'N'", recordWeight.get_TrxName())
-							.setParameters(recordWeight.getDD_RecordWeight_ID())
-							.setClient_ID()
-							.first();
-						if(inbound != null
-								&& inbound.getWM_InOutBound_ID() != 0) {
-							MWMInOutBoundLine inboundLine = new Query(recordWeight.getCtx(), I_WM_InOutBoundLine.Table_Name, "WM_InOutBound_ID = ? AND C_OrderLine_ID = ?", recordWeight.get_TrxName())
-							.setParameters(inbound.getWM_InOutBound_ID(), recordWeight.getC_OrderLine_ID())
-							.setClient_ID()
-							.first();
-							//	Validate
-							if(inboundLine == null
-									|| inboundLine.getWM_InOutBoundLine_ID() == 0) {
-								inboundLine = new MWMInOutBoundLine(inbound);
-								inboundLine = new MWMInOutBoundLine(inbound, orderLine);
-								inboundLine.setLine(10);
-								inboundLine.setDescription(Msg.parseTranslation(recordWeight.getCtx(), "@DD_RecordWeight_ID@: " + recordWeight.getDocumentNo()));
-								inboundLine.saveEx();
-							}
+						if(recordWeight.getC_OrderLine_ID() != 0) {
+							MOrderLine orderLine = new MOrderLine(recordWeight.getCtx(), recordWeight.getC_OrderLine_ID(), recordWeight.get_TrxName());
+							createExpressReceipt(recordWeight, orderLine);
 						} else {
-							inbound = new MWMInOutBound(recordWeight.getCtx(), 0, recordWeight.get_TrxName());
-							inbound.setShipDate(recordWeight.getDateDoc());
-							inbound.setPickDate(recordWeight.getDateDoc());
-							inbound.setDateTrx(recordWeight.getDateDoc());
-					        if (!Util.isEmpty(order.getDocumentNo())) {
-					        	inbound.setPOReference(order.getDocumentNo());
-					        }
-					        //	
-					        int docTypeId = MDocType.getDocType(MDocType.DOCBASETYPE_WarehouseManagementOrder);
-				            if (docTypeId <= 0) {
-				            	throw new DocTypeNotFoundException(MDocType.DOCBASETYPE_WarehouseManagementOrder, "");
-				            } else {
-				            	inbound.setC_DocType_ID(docTypeId);
-				            }
-					        //	
-					        inbound.setDocAction(MWMInOutBound.ACTION_Prepare);
-					        inbound.setDocStatus(MWMInOutBound.DOCSTATUS_Drafted);
-					        if(recordWeight.getM_Warehouse_ID() == 0) {
-					        	throw new AdempiereException("@FillMandatory@ @M_Warehouse_ID@");
-					        }
-					        inbound.setM_Warehouse_ID(recordWeight.getM_Warehouse_ID());
-					        //	Locator
-					        MLocator locator = MWarehouse.get(recordWeight.getCtx(), recordWeight.getM_Warehouse_ID()).getDefaultLocator();
-					        if(locator != null) {
-					        	inbound.setM_Locator_ID(locator.getM_Locator_ID());
-					        }
-					        inbound.setIsSOTrx(false);
-					        //	Set reference
-					        inbound.set_ValueOfColumn(I_DD_RecordWeight.COLUMNNAME_DD_RecordWeight_ID, recordWeight.getDD_RecordWeight_ID());
-					        inbound.saveEx();
-					        //	Create Line
-					        MWMInOutBoundLine inboundLine = new MWMInOutBoundLine(inbound);
-							inboundLine = new MWMInOutBoundLine(inbound, orderLine);
-							inboundLine.setLine(10);
-							inboundLine.setDescription(Msg.parseTranslation(recordWeight.getCtx(), "@DD_RecordWeight_ID@: " + recordWeight.getDocumentNo()));
-							inboundLine.saveEx();
+							for(MOrderLine orderLine : order.getLines()) {
+								createExpressReceipt(recordWeight, orderLine);
+							}
 						}
 					}
 				}
@@ -164,31 +113,154 @@ public class RawMaterialManagement implements ModelValidator {
 					if(!order.getDocStatus().equals(MOrder.DOCSTATUS_Completed)) {
 						throw new AdempiereException("@C_Order_ID@ @CreateShipment.OrderNotCompleted@");
 					}
-					MOrderLine orderLine = new MOrderLine(recordWeight.getCtx(), recordWeight.getC_OrderLine_ID(), recordWeight.get_TrxName());
-					//	Create Receipt
-					if(!recordWeight.isSOTrx()) {
-						MWMInOutBoundLine inboundLine = new Query(recordWeight.getCtx(), I_WM_InOutBoundLine.Table_Name, 
-								"C_OrderLine_ID = ? AND EXISTS(SELECT 1 FROM WM_InOutBound ob WHERE ob.Processed = 'N' "
-								+ "AND ob.WM_InOutBound_ID = WM_InOutBoundLine.WM_InOutBound_ID AND ob.DD_RecordWeight_ID = ?)", recordWeight.get_TrxName())
-								.setParameters(recordWeight.getC_OrderLine_ID(), recordWeight.getDD_RecordWeight_ID())
-								.setClient_ID()
-								.first();
-						//	Validate
-						if(inboundLine != null
-								&& inboundLine.getWM_InOutBoundLine_ID() != 0) {
-							MProduct product = MProduct.get(recordWeight.getCtx(), orderLine.getM_Product_ID());
-							if(product.get_ValueAsBoolean("IsBulkProduct")) {
-								inboundLine.saveEx();
+					if(recordWeight.getC_OrderLine_ID() != 0) {
+						MOrderLine orderLine = new MOrderLine(recordWeight.getCtx(), recordWeight.getC_OrderLine_ID(), recordWeight.get_TrxName());
+						//	Create Receipt
+						if(!recordWeight.isSOTrx()) {
+							MWMInOutBoundLine inboundLine = new Query(recordWeight.getCtx(), I_WM_InOutBoundLine.Table_Name, 
+									"C_OrderLine_ID = ? AND EXISTS(SELECT 1 FROM WM_InOutBound ob WHERE ob.Processed = 'N' "
+									+ "AND ob.WM_InOutBound_ID = WM_InOutBoundLine.WM_InOutBound_ID AND ob.DD_RecordWeight_ID = ?)", recordWeight.get_TrxName())
+									.setParameters(recordWeight.getC_OrderLine_ID(), recordWeight.getDD_RecordWeight_ID())
+									.setClient_ID()
+									.first();
+							//	Validate
+							if(inboundLine != null
+									&& inboundLine.getWM_InOutBoundLine_ID() != 0) {
+								MProduct product = MProduct.get(recordWeight.getCtx(), orderLine.getM_Product_ID());
+								if(product.get_ValueAsBoolean("IsBulkProduct")) {
+									inboundLine.setMovementQty(recordWeight.getConvertedWeight(product.getM_Product_ID()));
+									inboundLine.saveEx();
+								}
 							}
 						}
 					}
 				}
 			}
-		}	
+		} else if (po.get_TableName().equals(MWMInOutBound.Table_Name)) {
+			if(timing == TIMING_BEFORE_PREPARE) {
+				MWMInOutBound inbound = (MWMInOutBound) po;
+				if(inbound.get_ValueAsInt(I_DD_RecordWeight.COLUMNNAME_DD_RecordWeight_ID) != 0
+						&& !inbound.isSOTrx()) {
+					MDDRecordWeight recordWeight = new MDDRecordWeight(inbound.getCtx(), inbound.get_ValueAsInt(I_DD_RecordWeight.COLUMNNAME_DD_RecordWeight_ID), inbound.get_TrxName());
+					//	Validate complete document
+					if(!recordWeight.getDocStatus().equals(MDDRecordWeight.DOCSTATUS_Completed)) {
+						throw new AdempiereException("@RecordWeight.UnComplete@");
+					}
+					//	Validate weight
+					if(!recordWeight.getWeightStatus().equals(MDDRecordWeight.WEIGHTSTATUS_Completed)) {
+						throw new AdempiereException("@IncompleteRecordWeight@");
+					}
+					//	Validate record weight
+					if(recordWeight.getC_OrderLine_ID() != 0) {
+						MOrderLine orderLine = new MOrderLine(recordWeight.getCtx(), recordWeight.getC_OrderLine_ID(), recordWeight.get_TrxName());
+						MProduct product = MProduct.get(recordWeight.getCtx(), orderLine.getM_Product_ID());
+						if(product.get_ValueAsBoolean("IsBulkProduct")) {
+							List<MWMInOutBoundLine> inboundLines = inbound.getLines(true, null);
+							if(inboundLines.size() > 1) {
+								inboundLines.stream()
+								.filter(inboundLine -> inboundLine.getC_OrderLine_ID() != orderLine.getC_OrderLine_ID())
+								.forEach(inboundLine -> {
+									inboundLine.deleteEx(true);
+								});
+							}
+							//	Modify
+							Optional<MWMInOutBoundLine> optional = inboundLines.stream()
+									.filter(inboundLine -> inboundLine.getC_OrderLine_ID() == orderLine.getC_OrderLine_ID())
+									.findFirst();
+							MWMInOutBoundLine lineToUpdate = null;
+							if(optional.isPresent()) {
+								lineToUpdate = optional.get();
+							}
+							//	
+							if(lineToUpdate == null) {
+								lineToUpdate = new MWMInOutBoundLine(inbound, orderLine);
+							}
+							lineToUpdate.setLine(10);
+							lineToUpdate.setDescription(Msg.parseTranslation(recordWeight.getCtx(), "@DD_RecordWeight_ID@: " + recordWeight.getDocumentNo()));
+							//	
+							lineToUpdate.setMovementQty(recordWeight.getConvertedWeight(product.getM_Product_ID()));
+							lineToUpdate.saveEx();
+						}
+					} else {
+						List<MWMInOutBoundLine> inboundLines = inbound.getLines(true, null);
+						if(inboundLines.size() == 0) {
+							throw new AdempiereException("@NoLines@");
+						}
+					}
+				}
+			}
+		}
 		//
 		return error;
 	}
-
+	
+	/**
+	 * Create Express Receipt from record weight
+	 * @param recordWeight
+	 * @param orderLine
+	 */
+	private void createExpressReceipt(MDDRecordWeight recordWeight, MOrderLine orderLine) {
+		MWMInOutBound inbound = new Query(recordWeight.getCtx(), I_WM_InOutBound.Table_Name, "DD_RecordWeight_ID = ? AND Processed = 'N'", recordWeight.get_TrxName())
+				.setParameters(recordWeight.getDD_RecordWeight_ID())
+				.setClient_ID()
+				.first();
+			if(inbound != null
+					&& inbound.getWM_InOutBound_ID() != 0) {
+				MWMInOutBoundLine inboundLine = new Query(recordWeight.getCtx(), I_WM_InOutBoundLine.Table_Name, "WM_InOutBound_ID = ? AND C_OrderLine_ID = ?", recordWeight.get_TrxName())
+				.setParameters(inbound.getWM_InOutBound_ID(), recordWeight.getC_OrderLine_ID())
+				.setClient_ID()
+				.first();
+				//	Validate
+				if(inboundLine == null
+						|| inboundLine.getWM_InOutBoundLine_ID() == 0) {
+					inboundLine = new MWMInOutBoundLine(inbound);
+					inboundLine = new MWMInOutBoundLine(inbound, orderLine);
+					inboundLine.setMovementQty(inboundLine.getQtyToDeliver());
+					inboundLine.setLine(10);
+					inboundLine.setDescription(Msg.parseTranslation(recordWeight.getCtx(), "@DD_RecordWeight_ID@: " + recordWeight.getDocumentNo()));
+					inboundLine.saveEx();
+				}
+			} else {
+				inbound = new MWMInOutBound(recordWeight.getCtx(), 0, recordWeight.get_TrxName());
+				inbound.setShipDate(recordWeight.getDateDoc());
+				inbound.setPickDate(recordWeight.getDateDoc());
+				inbound.setDateTrx(recordWeight.getDateDoc());
+		        if (!Util.isEmpty(orderLine.getParent().getDocumentNo())) {
+		        	inbound.setPOReference(orderLine.getParent().getDocumentNo());
+		        }
+		        //	
+		        int docTypeId = MDocType.getDocType(MDocType.DOCBASETYPE_WarehouseManagementOrder);
+	            if (docTypeId <= 0) {
+	            	throw new DocTypeNotFoundException(MDocType.DOCBASETYPE_WarehouseManagementOrder, "");
+	            } else {
+	            	inbound.setC_DocType_ID(docTypeId);
+	            }
+		        //	
+		        inbound.setDocAction(MWMInOutBound.ACTION_Prepare);
+		        inbound.setDocStatus(MWMInOutBound.DOCSTATUS_Drafted);
+		        if(recordWeight.getM_Warehouse_ID() == 0) {
+		        	throw new AdempiereException("@FillMandatory@ @M_Warehouse_ID@");
+		        }
+		        inbound.setM_Warehouse_ID(recordWeight.getM_Warehouse_ID());
+		        //	Locator
+		        MLocator locator = MWarehouse.get(recordWeight.getCtx(), recordWeight.getM_Warehouse_ID()).getDefaultLocator();
+		        if(locator != null) {
+		        	inbound.setM_Locator_ID(locator.getM_Locator_ID());
+		        }
+		        inbound.setIsSOTrx(false);
+		        //	Set reference
+		        inbound.set_ValueOfColumn(I_DD_RecordWeight.COLUMNNAME_DD_RecordWeight_ID, recordWeight.getDD_RecordWeight_ID());
+		        inbound.saveEx();
+		        //	Create Line
+		        MWMInOutBoundLine inboundLine = new MWMInOutBoundLine(inbound);
+				inboundLine = new MWMInOutBoundLine(inbound, orderLine);
+				inboundLine.setMovementQty(inboundLine.getQtyToDeliver());
+				inboundLine.setLine(10);
+				inboundLine.setDescription(Msg.parseTranslation(recordWeight.getCtx(), "@DD_RecordWeight_ID@: " + recordWeight.getDocumentNo()));
+				inboundLine.saveEx();
+			}
+	}
+	
 	@Override
 	public String modelChange(PO po, int type) throws Exception {
 		return null;
