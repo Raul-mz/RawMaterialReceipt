@@ -75,9 +75,6 @@
     <Step SeqNo="30" StepType="AD">
       <PO AD_Table_ID="752" Action="I" Record_ID="94257" Table="AD_Column_Trl">
         <Data AD_Column_ID="12959" Column="IsActive">true</Data>
-        <Data AD_Column_ID="12960" Column="Created">2019-08-23 22:00:03.736</Data>
-        <Data AD_Column_ID="12952" Column="Updated">2019-08-23 22:00:03.736</Data>
-        <Data AD_Column_ID="12955" Column="AD_Column_ID">94257</Data>
         <Data AD_Column_ID="12954" Column="IsTranslated">false</Data>
         <Data AD_Column_ID="12957" Column="Name">Inbound &amp; Outbound Order Line</Data>
         <Data AD_Column_ID="12961" Column="AD_Client_ID">0</Data>
@@ -86,17 +83,14 @@
         <Data AD_Column_ID="12956" Column="CreatedBy">100</Data>
         <Data AD_Column_ID="12953" Column="AD_Language">es_MX</Data>
         <Data AD_Column_ID="84310" Column="UUID">e3576118-c612-11e9-8f6b-0242ac110002</Data>
-      </PO>
-    </Step>
-    <Step SeqNo="40" StepType="AD">
-      <PO AD_Table_ID="107" Action="U" Record_ID="95233" Table="AD_Field">
-        <Data AD_Column_ID="177" Column="DisplayLogic" isNewNull="true" oldValue="@IsSOTrx@=N"/>
-        <Data AD_Column_ID="15013" Column="IsMandatory" isNewNull="true" oldValue="Y"/>
-        <Data AD_Column_ID="183" Column="IsSameLine" oldValue="true">false</Data>
+        <Data AD_Column_ID="12960" Column="Created">2019-08-23 22:00:03.736</Data>
+        <Data AD_Column_ID="12952" Column="Updated">2019-08-23 22:00:03.736</Data>
+        <Data AD_Column_ID="12955" Column="AD_Column_ID">94257</Data>
       </PO>
     </Step>
     <Step SeqNo="50" StepType="AD">
       <PO AD_Table_ID="107" Action="I" Record_ID="95560" Table="AD_Field">
+        <Data AD_Column_ID="54357" Column="AD_Val_Rule_ID" isNewNull="true"/>
         <Data AD_Column_ID="180" Column="DisplayLength">0</Data>
         <Data AD_Column_ID="168" Column="Name">Inbound &amp; Outbound Order Line</Data>
         <Data AD_Column_ID="2007" Column="IsReadOnly">false</Data>
@@ -139,7 +133,6 @@
         <Data AD_Column_ID="54356" Column="AD_Reference_Value_ID" isNewNull="true"/>
         <Data AD_Column_ID="62479" Column="SeqNoGrid">200</Data>
         <Data AD_Column_ID="172" Column="AD_Tab_ID">53730</Data>
-        <Data AD_Column_ID="54357" Column="AD_Val_Rule_ID" isNewNull="true"/>
         <Data AD_Column_ID="84320" Column="UUID">2585c444-c613-11e9-8f6b-0242ac110002</Data>
       </PO>
     </Step>

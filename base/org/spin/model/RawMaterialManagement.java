@@ -15,6 +15,7 @@
  ************************************************************************************/
 package org.spin.model;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -113,14 +114,24 @@ public class RawMaterialManagement implements ModelValidator {
 					if(!order.getDocStatus().equals(MOrder.DOCSTATUS_Completed)) {
 						throw new AdempiereException("@C_Order_ID@ @CreateShipment.OrderNotCompleted@");
 					}
+					int orderLineId = 0;
 					if(recordWeight.getC_OrderLine_ID() != 0) {
-						MOrderLine orderLine = new MOrderLine(recordWeight.getCtx(), recordWeight.getC_OrderLine_ID(), recordWeight.get_TrxName());
+						orderLineId = recordWeight.getC_OrderLine_ID();
+					} else if(recordWeight.getC_Order_ID() != 0) {
+						List<MOrderLine> orderLines = Arrays.asList(order.getLines());
+						if(orderLines.size() == 1) {
+							orderLineId = orderLines.stream().findFirst().get().getC_OrderLine_ID();
+						}
+					}
+					//	Get from line
+					if(orderLineId != 0) {
+						MOrderLine orderLine = new MOrderLine(recordWeight.getCtx(), orderLineId, recordWeight.get_TrxName());
 						//	Create Receipt
 						if(!recordWeight.isSOTrx()) {
 							MWMInOutBoundLine inboundLine = new Query(recordWeight.getCtx(), I_WM_InOutBoundLine.Table_Name, 
 									"C_OrderLine_ID = ? AND EXISTS(SELECT 1 FROM WM_InOutBound ob WHERE ob.Processed = 'N' "
 									+ "AND ob.WM_InOutBound_ID = WM_InOutBoundLine.WM_InOutBound_ID AND ob.DD_RecordWeight_ID = ?)", recordWeight.get_TrxName())
-									.setParameters(recordWeight.getC_OrderLine_ID(), recordWeight.getDD_RecordWeight_ID())
+									.setParameters(orderLineId, recordWeight.getDD_RecordWeight_ID())
 									.setClient_ID()
 									.first();
 							//	Validate
@@ -150,9 +161,29 @@ public class RawMaterialManagement implements ModelValidator {
 					if(!recordWeight.getWeightStatus().equals(MDDRecordWeight.WEIGHTSTATUS_Completed)) {
 						throw new AdempiereException("@IncompleteRecordWeight@");
 					}
-					//	Validate record weight
+					int orderLineId = 0;
 					if(recordWeight.getC_OrderLine_ID() != 0) {
-						MOrderLine orderLine = new MOrderLine(recordWeight.getCtx(), recordWeight.getC_OrderLine_ID(), recordWeight.get_TrxName());
+						orderLineId = recordWeight.getC_OrderLine_ID();
+					} else if(recordWeight.getC_Order_ID() != 0) {
+						MOrder order = (MOrder) recordWeight.getC_Order();
+						List<MOrderLine> orderLines = Arrays.asList(order.getLines());
+						if(orderLines.size() == 1) {
+							orderLineId = orderLines.stream().findFirst().get().getC_OrderLine_ID();
+						} else if(orderLines.size() == 0) {
+							List<MWMInOutBoundLine> inboundLines = inbound.getLines(true, null);
+							if(inboundLines.size() == 0) {
+								throw new AdempiereException("@NoLines@");
+							}
+						}
+					} else {
+						List<MWMInOutBoundLine> inboundLines = inbound.getLines(true, null);
+						if(inboundLines.size() == 0) {
+							throw new AdempiereException("@NoLines@");
+						}
+					}
+					//	Get from line
+					if(orderLineId != 0) {
+						MOrderLine orderLine = new MOrderLine(recordWeight.getCtx(), orderLineId, recordWeight.get_TrxName());
 						MProduct product = MProduct.get(recordWeight.getCtx(), orderLine.getM_Product_ID());
 						if(product.get_ValueAsBoolean("IsBulkProduct")) {
 							List<MWMInOutBoundLine> inboundLines = inbound.getLines(true, null);
@@ -174,17 +205,13 @@ public class RawMaterialManagement implements ModelValidator {
 							//	
 							if(lineToUpdate == null) {
 								lineToUpdate = new MWMInOutBoundLine(inbound, orderLine);
+								lineToUpdate.setMovementQty(lineToUpdate.getQtyToDeliver());
 							}
 							lineToUpdate.setLine(10);
 							lineToUpdate.setDescription(Msg.parseTranslation(recordWeight.getCtx(), "@DD_RecordWeight_ID@: " + recordWeight.getDocumentNo()));
 							//	
 							lineToUpdate.setMovementQty(recordWeight.getConvertedWeight(product.getM_Product_ID()));
 							lineToUpdate.saveEx();
-						}
-					} else {
-						List<MWMInOutBoundLine> inboundLines = inbound.getLines(true, null);
-						if(inboundLines.size() == 0) {
-							throw new AdempiereException("@NoLines@");
 						}
 					}
 				}
@@ -206,8 +233,18 @@ public class RawMaterialManagement implements ModelValidator {
 				.first();
 			if(inbound != null
 					&& inbound.getWM_InOutBound_ID() != 0) {
+				int orderLineId = 0;
+				if(recordWeight.getC_OrderLine_ID() != 0) {
+					orderLineId = recordWeight.getC_OrderLine_ID();
+				} else if(recordWeight.getC_Order_ID() != 0) {
+					MOrder order = (MOrder) recordWeight.getC_Order();
+					List<MOrderLine> orderLines = Arrays.asList(order.getLines());
+					if(orderLines.size() == 1) {
+						orderLineId = orderLines.stream().findFirst().get().getC_OrderLine_ID();
+					}
+				}
 				MWMInOutBoundLine inboundLine = new Query(recordWeight.getCtx(), I_WM_InOutBoundLine.Table_Name, "WM_InOutBound_ID = ? AND C_OrderLine_ID = ?", recordWeight.get_TrxName())
-				.setParameters(inbound.getWM_InOutBound_ID(), recordWeight.getC_OrderLine_ID())
+				.setParameters(inbound.getWM_InOutBound_ID(), orderLineId)
 				.setClient_ID()
 				.first();
 				//	Validate
