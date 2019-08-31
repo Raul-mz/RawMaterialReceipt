@@ -42,6 +42,7 @@ import org.eevolution.model.MWMInOutBoundLine;
 
 /**
  * 	Add Default Model Validator for Raw Material Receipt
+ * 	Raw material receipt
  * 	@author Yamel Senih, ysenih@erpya.com, ERPCyA http://www.erpya.com>
  */
 public class RawMaterialManagement implements ModelValidator {
