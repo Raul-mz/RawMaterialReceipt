@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<Migrations>
+  <Migration EntityType="D" Name="Add Print format for Quality Analysis" ReleaseNo="3.9.3" SeqNo="5070">
+    <Step SeqNo="10" StepType="AD">
+      <PO AD_Table_ID="361" Action="I" Record_ID="53296" Table="AD_ReportView">
+        <Data AD_Column_ID="4388" Column="Created">2019-09-02 10:53:30.734</Data>
+        <Data AD_Column_ID="85531" Column="Classname" isNewNull="true"/>
+        <Data AD_Column_ID="4387" Column="IsActive">true</Data>
+        <Data AD_Column_ID="4390" Column="Updated">2019-09-02 10:53:30.734</Data>
+        <Data AD_Column_ID="4384" Column="AD_ReportView_ID">53296</Data>
+        <Data AD_Column_ID="4395" Column="WhereClause" isNewNull="true"/>
+        <Data AD_Column_ID="4396" Column="OrderByClause" isNewNull="true"/>
+        <Data AD_Column_ID="4393" Column="Description" isNewNull="true"/>
+        <Data AD_Column_ID="4392" Column="Name">RM_QualityAnalysis</Data>
+        <Data AD_Column_ID="78517" Column="PrintName">Quality Analysis</Data>
+        <Data AD_Column_ID="78535" Column="IsCentrallyMaintained">true</Data>
+        <Data AD_Column_ID="4385" Column="AD_Client_ID">0</Data>
+        <Data AD_Column_ID="10032" Column="EntityType">ECA08</Data>
+        <Data AD_Column_ID="4386" Column="AD_Org_ID">0</Data>
+        <Data AD_Column_ID="4389" Column="CreatedBy">100</Data>
+        <Data AD_Column_ID="4391" Column="UpdatedBy">100</Data>
+        <Data AD_Column_ID="4394" Column="AD_Table_ID">53560</Data>
+        <Data AD_Column_ID="84405" Column="UUID">6e153d0e-cd91-11e9-9f93-0242ac110002</Data>
+      </PO>
+    </Step>
+    <Step SeqNo="20" StepType="AD">
+      <PO AD_Table_ID="54060" Action="I" Record_ID="0" Table="AD_ReportView_Trl">
+        <Data AD_Column_ID="78520" Column="IsActive">true</Data>
+        <Data AD_Column_ID="78521" Column="Created">2019-09-02 10:53:38.166</Data>
+        <Data AD_Column_ID="78522" Column="Updated">2019-09-02 10:53:38.166</Data>
+        <Data AD_Column_ID="78527" Column="PrintName">Quality Analysis</Data>
+        <Data AD_Column_ID="78528" Column="Name">RM_QualityAnalysis</Data>
+        <Data AD_Column_ID="78529" Column="Description" isNewNull="true"/>
+        <Data AD_Column_ID="78534" Column="IsTranslated">false</Data>
+        <Data AD_Column_ID="78518" Column="AD_Client_ID">0</Data>
+        <Data AD_Column_ID="78519" Column="AD_Org_ID">0</Data>
+        <Data AD_Column_ID="78523" Column="CreatedBy">100</Data>
+        <Data AD_Column_ID="78524" Column="UpdatedBy">100</Data>
+        <Data AD_Column_ID="78526" Column="AD_Language">es_MX</Data>
+        <Data AD_Column_ID="78525" Column="AD_ReportView_ID">53296</Data>
+        <Data AD_Column_ID="84407" Column="UUID">723732de-cd91-11e9-9f93-0242ac110002</Data>
+      </PO>
+    </Step>
+    <Step SeqNo="30" StepType="AD">
+      <PO AD_Table_ID="54060" Action="U" Record_ID="0" Table="AD_ReportView_Trl">
+        <Data AD_Column_ID="78525" Column="AD_ReportView_ID" oldValue="53296">53296</Data>
+        <Data AD_Column_ID="78527" Column="PrintName" oldValue="Quality Analysis">Análisis de Calidad</Data>
+        <Data AD_Column_ID="78528" Column="Name" oldValue="RM_QualityAnalysis">Análisis de Calidad</Data>
+        <Data AD_Column_ID="78526" Column="AD_Language" oldValue="es_MX">es_MX</Data>
+      </PO>
+    </Step>
+    <Step SeqNo="40" StepType="AD">
+      <PO AD_Table_ID="284" Action="I" Record_ID="54289" Table="AD_Process">
+        <Data AD_Column_ID="2811" Column="Help">Use this process for print a Quality Analysis Ticket</Data>
+        <Data AD_Column_ID="12458" Column="IsBetaFunctionality">false</Data>
+        <Data AD_Column_ID="3371" Column="IsReport">true</Data>
+        <Data AD_Column_ID="6653" Column="Statistic_Seconds">0</Data>
+        <Data AD_Column_ID="6652" Column="Statistic_Count">0</Data>
+        <Data AD_Column_ID="2809" Column="Name">Quality Analysis Report</Data>
+        <Data AD_Column_ID="2808" Column="UpdatedBy">100</Data>
+        <Data AD_Column_ID="2806" Column="CreatedBy">100</Data>
+        <Data AD_Column_ID="2801" Column="AD_Process_ID">54289</Data>
+        <Data AD_Column_ID="2802" Column="AD_Client_ID">0</Data>
+        <Data AD_Column_ID="2803" Column="AD_Org_ID">0</Data>
+        <Data AD_Column_ID="11834" Column="AD_Workflow_ID" isNewNull="true"/>
+        <Data AD_Column_ID="2813" Column="ProcedureName" isNewNull="true"/>
+        <Data AD_Column_ID="63488" Column="AD_Browse_ID" isNewNull="true"/>
+        <Data AD_Column_ID="6485" Column="EntityType">ECA08</Data>
+        <Data AD_Column_ID="50182" Column="JasperReport" isNewNull="true"/>
+        <Data AD_Column_ID="2805" Column="Created">2019-09-02 10:54:08.028</Data>
+        <Data AD_Column_ID="2807" Column="Updated">2019-09-02 10:54:08.028</Data>
+        <Data AD_Column_ID="2810" Column="Description">Report for Print format of Quality Analysis</Data>
+        <Data AD_Column_ID="4214" Column="IsDirectPrint">false</Data>
+        <Data AD_Column_ID="57920" Column="CopyFromProcess">N</Data>
+        <Data AD_Column_ID="2804" Column="IsActive">true</Data>
+        <Data AD_Column_ID="50181" Column="ShowHelp">Y</Data>
+        <Data AD_Column_ID="4023" Column="Value">Rpt RM_QualityAnalysis</Data>
+        <Data AD_Column_ID="11563" Column="WorkflowValue" isNewNull="true"/>
+        <Data AD_Column_ID="56515" Column="AD_Form_ID" isNewNull="true"/>
+        <Data AD_Column_ID="5790" Column="AccessLevel">3</Data>
+        <Data AD_Column_ID="14084" Column="IsServerProcess">false</Data>
+        <Data AD_Column_ID="78843" Column="GenerateClass">N</Data>
+        <Data AD_Column_ID="7752" Column="AD_PrintFormat_ID" isNewNull="true"/>
+        <Data AD_Column_ID="4374" Column="AD_ReportView_ID">53296</Data>
+        <Data AD_Column_ID="84383" Column="UUID">844c1340-cd91-11e9-9f93-0242ac110002</Data>
+        <Data AD_Column_ID="4656" Column="Classname" isNewNull="true"/>
+      </PO>
+    </Step>
+    <Step SeqNo="50" StepType="AD">
+      <PO AD_Table_ID="287" Action="I" Record_ID="0" Table="AD_Process_Trl">
+        <Data AD_Column_ID="2847" Column="IsActive">true</Data>
+        <Data AD_Column_ID="2850" Column="Updated">2019-09-02 10:54:08.855</Data>
+        <Data AD_Column_ID="2848" Column="Created">2019-09-02 10:54:08.855</Data>
+        <Data AD_Column_ID="2853" Column="Description">Report for Print format of Quality Analysis</Data>
+        <Data AD_Column_ID="2854" Column="Help">Use this process for print a Quality Analysis Ticket</Data>
+        <Data AD_Column_ID="2855" Column="IsTranslated">false</Data>
+        <Data AD_Column_ID="2852" Column="Name">Quality Analysis Report</Data>
+        <Data AD_Column_ID="2846" Column="AD_Org_ID">0</Data>
+        <Data AD_Column_ID="2845" Column="AD_Client_ID">0</Data>
+        <Data AD_Column_ID="2851" Column="UpdatedBy">100</Data>
+        <Data AD_Column_ID="2844" Column="AD_Language">es_MX</Data>
+        <Data AD_Column_ID="2843" Column="AD_Process_ID">54289</Data>
+        <Data AD_Column_ID="2849" Column="CreatedBy">100</Data>
+        <Data AD_Column_ID="84387" Column="UUID">8481c67a-cd91-11e9-9f93-0242ac110002</Data>
+      </PO>
+    </Step>
+    <Step SeqNo="60" StepType="AD">
+      <PO AD_Table_ID="287" Action="U" Record_ID="0" Table="AD_Process_Trl">
+        <Data AD_Column_ID="2853" Column="Description" oldValue="Report for Print format of Quality Analysis">Reporte para Imprimir Análisis de Calidad</Data>
+        <Data AD_Column_ID="2854" Column="Help" oldValue="Use this process for print a Quality Analysis Ticket">Use este proceso para imprimir el análisis de calidad</Data>
+        <Data AD_Column_ID="2852" Column="Name" oldValue="Quality Analysis Report">Reporte de Análisis de Calidad</Data>
+        <Data AD_Column_ID="2844" Column="AD_Language" oldValue="es_MX">es_MX</Data>
+        <Data AD_Column_ID="2843" Column="AD_Process_ID" oldValue="54289">54289</Data>
+      </PO>
+    </Step>
+    <Step SeqNo="70" StepType="AD">
+      <PO AD_Table_ID="106" Action="U" Record_ID="53730" Table="AD_Tab">
+        <Data AD_Column_ID="3374" Column="AD_Process_ID" isOldNull="true">54289</Data>
+      </PO>
+    </Step>
+  </Migration>
+</Migrations>
