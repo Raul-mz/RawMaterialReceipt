@@ -37,6 +37,7 @@ import org.compiere.util.Msg;
 import org.compiere.util.Util;
 import org.eevolution.model.I_WM_InOutBound;
 import org.eevolution.model.I_WM_InOutBoundLine;
+import org.eevolution.model.MDDFreight;
 import org.eevolution.model.MWMInOutBound;
 import org.eevolution.model.MWMInOutBoundLine;
 
@@ -144,6 +145,20 @@ public class RawMaterialManagement implements ModelValidator {
 									inboundLine.saveEx();
 								}
 							}
+						}
+					}
+				} else if(recordWeight.getDD_Freight_ID() != 0) {
+					if(recordWeight.isSOTrx()) {
+						MDDFreight freightOrder = (MDDFreight) recordWeight.getDD_Freight();
+						if(freightOrder.getWM_InOutBound_ID() != 0) {
+							MWMInOutBound outBound = (MWMInOutBound) freightOrder.getWM_InOutBound();
+							outBound.getLines(true, I_WM_InOutBoundLine.COLUMNNAME_Line)
+								.stream()
+								.filter(outBoundLine -> outBoundLine.getM_Product_ID() != 0 && MProduct.get(recordWeight.getCtx(), outBoundLine.getM_Product_ID()).get_ValueAsBoolean("IsBulkProduct"))
+								.forEach(outBoundLine -> {
+								outBoundLine.setMovementQty(recordWeight.getConvertedWeight(outBoundLine.getM_Product_ID()));
+								outBoundLine.saveEx();
+							});
 						}
 					}
 				}
