@@ -27,6 +27,8 @@ import org.compiere.model.MLocator;
 import org.compiere.model.MOrder;
 import org.compiere.model.MOrderLine;
 import org.compiere.model.MProduct;
+import org.compiere.model.MShipper;
+import org.compiere.model.MStorage;
 import org.compiere.model.MWarehouse;
 import org.compiere.model.ModelValidationEngine;
 import org.compiere.model.ModelValidator;
@@ -73,6 +75,7 @@ public class RawMaterialManagement implements ModelValidator {
 		// Add Timing change only for invoice
 		engine.addDocValidate(MDDRecordWeight.Table_Name, this);
 		engine.addDocValidate(MWMInOutBound.Table_Name, this);
+		engine.addModelChange(MShipper.Table_Name, this);
 	}
 
 	@Override
@@ -231,6 +234,23 @@ public class RawMaterialManagement implements ModelValidator {
 						}
 					}
 				}
+				//	
+				inbound.getLines(true, I_WM_InOutBoundLine.COLUMNNAME_Line)
+					.stream()
+					.filter(outboundLine -> outboundLine.getM_Locator_ID() == 0 || outboundLine.getM_LocatorTo_ID() == 0)
+					.forEach(outboundLine -> {
+						if(outboundLine.getM_LocatorTo_ID() == 0) {
+							int locatorId = MStorage.getM_Locator_ID(outboundLine.getM_Warehouse_ID(), 
+									outboundLine.getM_Product_ID(), 
+									outboundLine.getM_AttributeSetInstance_ID(), 
+									outboundLine.getMovementQty(), 
+									inbound.get_TrxName());
+							if(locatorId > 0) {
+								outboundLine.setM_LocatorTo_ID(locatorId);
+							}
+						}
+						outboundLine.saveEx();
+					});
 			}
 		}
 		//
