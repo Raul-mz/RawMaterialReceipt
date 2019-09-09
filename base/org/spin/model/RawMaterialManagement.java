@@ -235,7 +235,8 @@ public class RawMaterialManagement implements ModelValidator {
 					}
 				}
 				//	
-				inbound.getLines(true, I_WM_InOutBoundLine.COLUMNNAME_Line)
+				if(inbound.isSOTrx()) {
+					inbound.getLines(true, I_WM_InOutBoundLine.COLUMNNAME_Line)
 					.stream()
 					.filter(outboundLine -> outboundLine.getM_Locator_ID() == 0 || outboundLine.getM_LocatorTo_ID() == 0)
 					.forEach(outboundLine -> {
@@ -251,6 +252,7 @@ public class RawMaterialManagement implements ModelValidator {
 						}
 						outboundLine.saveEx();
 					});
+				}
 			}
 		}
 		//
