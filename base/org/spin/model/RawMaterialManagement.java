@@ -35,6 +35,7 @@ import org.compiere.model.ModelValidator;
 import org.compiere.model.PO;
 import org.compiere.model.Query;
 import org.compiere.util.CLogger;
+import org.compiere.util.Env;
 import org.compiere.util.Msg;
 import org.compiere.util.Util;
 import org.eevolution.model.I_WM_InOutBound;
@@ -304,12 +305,16 @@ public class RawMaterialManagement implements ModelValidator {
 		        	inbound.setPOReference(orderLine.getParent().getDocumentNo());
 		        }
 		        //	
-		        int docTypeId = MDocType.getDocType(MDocType.DOCBASETYPE_WarehouseManagementOrder);
-	            if (docTypeId <= 0) {
-	            	throw new DocTypeNotFoundException(MDocType.DOCBASETYPE_WarehouseManagementOrder, "");
-	            } else {
-	            	inbound.setC_DocType_ID(docTypeId);
-	            }
+		        Optional<MDocType> defaultDocumentType = Arrays.asList(MDocType.getOfDocBaseType(Env.getCtx(), MDocType.DOCBASETYPE_WarehouseManagementOrder))
+		        		.stream()
+		        		.filter(documentType -> documentType.isSOTrx())
+		        		.findFirst();
+		        	
+		        if (!defaultDocumentType.isPresent()) {
+		        	throw new DocTypeNotFoundException(MDocType.DOCBASETYPE_WarehouseManagementOrder, "");
+		        } else {
+		        	inbound.setC_DocType_ID(defaultDocumentType.get().getC_DocType_ID());
+		        }
 		        //	
 		        inbound.setDocAction(MWMInOutBound.ACTION_Prepare);
 		        inbound.setDocStatus(MWMInOutBound.DOCSTATUS_Drafted);
